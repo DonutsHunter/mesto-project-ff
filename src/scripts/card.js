@@ -1,5 +1,3 @@
-import { openModal } from './modal.js';
-
 // Функция создания карточки
 export function createCard(cardData, deleteCallback, likeCallback, openImageCallback) {
   const cardTemplate = document.querySelector('#card-template').content;

@@ -8,7 +8,6 @@ const profileEditButton = document.querySelector('.profile__edit-button');
 const profileAddButton = document.querySelector('.profile__add-button');
 const profileEditModal = document.querySelector('.popup_type_edit');
 const cardAddModal = document.querySelector('.popup_type_new-card');
-const imageModal = document.querySelector('.popup_type_image');
 const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
 const profileForm = document.forms['edit-profile'];
@@ -16,6 +15,14 @@ const cardForm = document.forms['new-place'];
 const cardNameInput = cardForm.querySelector('.popup__input_type_card-name');
 const cardLinkInput = cardForm.querySelector('.popup__input_type_url');
 const placesList = document.querySelector('.places__list');
+
+// Элементы модального окна с изображением
+const imageModal = document.querySelector('.popup_type_image');
+const imageModalImage = imageModal.querySelector('.popup__image');
+const imageModalCaption = imageModal.querySelector('.popup__caption');
+
+// Кнопки закрытия модальных окон
+const closeButtons = document.querySelectorAll('.popup__close');
 
 // Открытие модального окна редактирования профиля
 profileEditButton.addEventListener('click', () => {
@@ -30,12 +37,10 @@ profileAddButton.addEventListener('click', () => {
   openModal(cardAddModal);
 });
 
-// Закрытие модальных окон
-document.querySelectorAll('.popup__close').forEach((button) => {
-  button.addEventListener('click', () => {
-    const modal = button.closest('.popup');
-    closeModal(modal);
-  });
+// Добавляем обработчики закрытия для всех модальных окон
+closeButtons.forEach((button) => {
+  const modal = button.closest('.popup'); // Находим модальное окно для каждой кнопки
+  button.addEventListener('click', () => closeModal(modal));
 });
 
 // Обработчик отправки формы редактирования профиля
@@ -60,8 +65,6 @@ cardForm.addEventListener('submit', (evt) => {
 
 // Функция открытия модального окна с изображением
 function openImageModal(cardData) {
-  const imageModalImage = imageModal.querySelector('.popup__image');
-  const imageModalCaption = imageModal.querySelector('.popup__caption');
   imageModalImage.src = cardData.link;
   imageModalImage.alt = cardData.name;
   imageModalCaption.textContent = cardData.name;
