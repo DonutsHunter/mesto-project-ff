@@ -7,3 +7,7 @@
 ### Автор 
 
 - Github - [Nikolay Vashentsev](https://github.com/DonutsHunter)
+
+### Деплой проекта
+
+- Github Pages - https://donutshunter.github.io/mesto-project-ff/
