@@ -1,5 +1,5 @@
 // Функция создания карточки
-export function createCard(cardData, userId, handleDeleteCard, deleteCardFromServer, openModal, closeModal, deleteCardModal, handleLikeCard, setLike, openImageCallback) {
+export function createCard(cardData, userId, handleDeleteCardButtonClick, handleLikeCard, setLike, openImageCallback) {
   const cardTemplate = document.querySelector('#card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
 
@@ -18,14 +18,7 @@ export function createCard(cardData, userId, handleDeleteCard, deleteCardFromSer
   if (cardData.owner._id !== userId) {
     deleteButton.style.display = 'none';
   } else {
-    deleteButton.addEventListener('click', () => {
-      openModal(deleteCardModal);
-      const submitDeleteCardButton = deleteCardModal.querySelector('.popup__button');
-      submitDeleteCardButton.addEventListener('click', () => {
-        handleDeleteCard(cardElement, deleteCardFromServer, cardData._id);
-        closeModal(deleteCardModal);
-      }, { once: true }); // Обработчик сработает только один раз
-    });
+    deleteButton.addEventListener('click', () => handleDeleteCardButtonClick(cardElement, cardData._id));
   }
 
   // Лайк карточки
@@ -48,7 +41,7 @@ export function createCard(cardData, userId, handleDeleteCard, deleteCardFromSer
 
 // Функция удаления карточки
 export function handleDeleteCard(cardElement, deleteCardFromServer, cardId) {
-  deleteCardFromServer(cardId)
+  return deleteCardFromServer(cardId)
     .then(() => {
       cardElement.remove();
     })

@@ -23,6 +23,7 @@ const imageModal = document.querySelector('.popup_type_image');
 const imageModalImage = imageModal.querySelector('.popup__image');
 const imageModalCaption = imageModal.querySelector('.popup__caption');
 
+// Элементы модального окна с изменением аватарки
 const avatarModal = document.querySelector('.popup_type_avatar');
 const avatarForm = document.forms['edit-avatar'];
 const avatarLinkInput = avatarForm.querySelector('.popup__input_type_url');
@@ -33,7 +34,16 @@ const deleteCardModal = document.querySelector('.popup_type_delete_card');
 // Кнопки закрытия модальных окон
 const closeButtons = document.querySelectorAll('.popup__close');
 
+// Кнопки сабмита форм
+const profileSubmitButton = profileForm.querySelector('.popup__button');
+const cardSubmitButton = cardForm.querySelector('.popup__button');
+const avatarSubmitButton = avatarForm.querySelector('.popup__button');
+
 let userId;
+
+// Глобальные переменные для удаления карточки
+let currentCardElement = null;
+let currentCardId = null;
 
 // Конфигурация валидации
 const validationConfig = {
@@ -45,6 +55,110 @@ const validationConfig = {
   errorClass: 'popup__input_error_visible'
 };
 
+// Функция обработки сабмита удаления карточки
+function handleCardDeleteSubmit() {
+  handleDeleteCard(currentCardElement, deleteCardFromServer, currentCardId)
+    .then(() => {
+      closeModal(deleteCardModal);
+    })
+    .catch((error) => {
+      console.log(`Ошибка при удалении карточки: ${error}`);
+    });
+}
+
+// Добавляем обработчик сабмита удаления карточки один раз
+const submitDeleteCardButton = deleteCardModal.querySelector('.popup__button');
+submitDeleteCardButton.addEventListener('click', handleCardDeleteSubmit);
+
+// Функция обработки клика по кнопке удаления карточки
+function handleDeleteCardButtonClick(cardElement, cardId) {
+  currentCardElement = cardElement;
+  currentCardId = cardId;
+  openModal(deleteCardModal);
+}
+
+// Функция открытия модального окна редактирования профиля
+function handleProfileEditButtonClick() {
+  profileForm.elements.name.value = profileTitle.textContent;
+  profileForm.elements.description.value = profileDescription.textContent;
+  clearValidation(profileForm, validationConfig);
+  openModal(profileEditModal);
+}
+
+// Функция открытия модального окна добавления карточки
+function handleProfileAddButtonClick() {
+  cardForm.reset();
+  clearValidation(cardForm, validationConfig);
+  openModal(cardAddModal);
+}
+
+// Функция обработки отправки формы редактирования профиля
+function handleProfileFormSubmit(evt) {
+  evt.preventDefault();
+  const name = profileForm.elements.name.value;
+  const description = profileForm.elements.description.value;
+
+  profileSubmitButton.textContent = 'Сохранение...';
+
+  updateUserInfo({ name, about: description })
+    .then((updatedUser) => {
+      fillProfileWithResponse(updatedUser.name, updatedUser.about, updatedUser.avatar);
+      closeModal(profileEditModal);
+    })
+    .catch((error) => {
+      console.log(`Ошибка при обновлении профиля: ${error}`);
+    })
+    .finally(() => {
+      profileSubmitButton.textContent = 'Сохранить';
+    });
+}
+
+// Функция обработки отправки формы добавления карточки
+function handleCardFormSubmit(evt) {
+  evt.preventDefault();
+  const newCard = {
+    name: cardNameInput.value,
+    link: cardLinkInput.value,
+  };
+
+  cardSubmitButton.textContent = 'Сохранение...';
+
+  addCard(newCard)
+    .then((card) => {
+      const cardElement = createCard(card, userId, handleDeleteCardButtonClick, handleLikeCard, setLike, openImageModal);
+      placesList.prepend(cardElement);
+      closeModal(cardAddModal);
+      cardForm.reset();
+    })
+    .catch((error) => {
+      console.log(`Ошибка при добавлении карточки: ${error}`);
+    })
+    .finally(() => {
+      cardSubmitButton.textContent = 'Сохранить';
+    });
+}
+
+// Функция обработки отправки формы редактирования аватара
+function handleAvatarFormSubmit(evt) {
+  evt.preventDefault();
+  const avatarUrl = avatarLinkInput.value;
+
+  avatarSubmitButton.textContent = 'Сохранение...';
+
+  updateUserAvatar({ avatar: avatarUrl })
+    .then((updatedUser) => {
+      fillProfileWithResponse(updatedUser.name, updatedUser.about, updatedUser.avatar);
+      closeModal(avatarModal);
+    })
+    .catch((error) => {
+      console.log(`Ошибка при обновлении аватара: ${error}`);
+    })
+    .finally(() => {
+      // Возвращаем текст кнопки на "Сохранить"
+      avatarSubmitButton.textContent = 'Сохранить';
+    });
+}
+
 // Загрузка данных пользователя и карточек
 Promise.all([getUserInfo(), getInitialCards()])
   .then(([user, cards]) => {
@@ -53,7 +167,7 @@ Promise.all([getUserInfo(), getInitialCards()])
     userId = _id;
 
     cards.forEach(card => {
-      const cardElement = createCard(card, userId, handleDeleteCard, deleteCardFromServer, openModal, closeModal, deleteCardModal, handleLikeCard, setLike, openImageModal);
+      const cardElement = createCard(card, userId, handleDeleteCardButtonClick, handleLikeCard, setLike, openImageModal);
       placesList.append(cardElement);
     });
   })
@@ -73,82 +187,28 @@ function fillProfileWithResponse(name, about, avatarUrl) {
   avatarElement.style.backgroundImage = `url(${avatarUrl})`;
 }
 
-// Открытие модального окна редактирования профиля
-profileEditButton.addEventListener('click', () => {
-  profileForm.elements.name.value = profileTitle.textContent;
-  profileForm.elements.description.value = profileDescription.textContent;
-  clearValidation(profileForm, validationConfig);
-  openModal(profileEditModal);
-});
+// Открытие модального окна редактирования профиля и добавления карточки
+profileEditButton.addEventListener('click', handleProfileEditButtonClick);
+profileAddButton.addEventListener('click', handleProfileAddButtonClick);
 
-// Открытие модального окна добавления карточки
-profileAddButton.addEventListener('click', () => {
-  cardForm.reset();
-  clearValidation(cardForm, validationConfig);
-  openModal(cardAddModal);
-});
-
-// Добавляем обработчики закрытия для всех модальных окон
 closeButtons.forEach((button) => {
   const modal = button.closest('.popup');
   button.addEventListener('click', () => closeModal(modal));
 });
 
-// Обработчик отправки формы редактирования профиля
-profileForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
-  const name = profileForm.elements.name.value;
-  const description = profileForm.elements.description.value;
+// Обработчик отправки формы редактирования профиля и добавления карточки
+profileForm.addEventListener('submit', handleProfileFormSubmit);
+cardForm.addEventListener('submit', handleCardFormSubmit);
 
-  updateUserInfo({ name, about: description })
-    .then((updatedUser) => {
-      fillProfileWithResponse(updatedUser.name, updatedUser.about, updatedUser.avatar);
-      closeModal(profileEditModal);
-    })
-    .catch((error) => {
-      console.log(`Ошибка при обновлении профиля: ${error}`);
-    });
-});
-
-// Обработчик отправки формы добавления карточки
-cardForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
-  const newCard = {
-    name: cardNameInput.value,
-    link: cardLinkInput.value,
-  };
-
-  addCard(newCard)
-    .then((card) => {
-      const cardElement = createCard(card, userId, handleDeleteCard, deleteCardFromServer, openModal, closeModal, deleteCardModal, handleLikeCard, setLike, openImageModal);
-      placesList.prepend(cardElement);
-      closeModal(cardAddModal);
-      cardForm.reset();
-    })
-    .catch((error) => {
-      console.log(`Ошибка при добавлении карточки: ${error}`);
-    });
-});
-
+// Обработчик открытия модального окна редактирования аватара
 avatarElement.addEventListener('click', () => {
   avatarForm.reset();
   clearValidation(avatarForm, validationConfig);
   openModal(avatarModal);
 });
 
-avatarForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
-  const avatarUrl = avatarLinkInput.value;
-
-  updateUserAvatar({ avatar: avatarUrl })
-    .then((updatedUser) => {
-      fillProfileWithResponse(updatedUser.name, updatedUser.about, updatedUser.avatar);
-      closeModal(avatarModal);
-    })
-    .catch((error) => {
-      console.log(`Ошибка при обновлении аватара: ${error}`);
-    });
-});
+// Обработчик отправки формы редактирования аватара
+avatarForm.addEventListener('submit', handleAvatarFormSubmit);
 
 // Функция открытия модального окна с изображением
 function openImageModal(cardData) {
