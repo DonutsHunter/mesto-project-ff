@@ -37,4 +37,12 @@
 .popup{align-items:center;background-color:rgba(0,0,0,.5);bottom:0;display:none;font-family:Inter,Arial,sans-serif;justify-content:center;left:0;position:fixed;right:0;top:0;z-index:10}
 .popup_is-animated{display:flex;opacity:0;pointer-events:none;transition:visibility 0s .6s,opacity .6s;-webkit-user-select:none;-moz-user-select:none;user-select:none;visibility:hidden}
 .popup_is-opened{display:flex;opacity:1;pointer-events:all;transition:visibility 0s,opacity .6s;visibility:visible}
+.popup__input_type_error{border-bottom-color:red}
+.popup__input_error{color:red;font-size:12px;opacity:0;transition:visibility 0s .3s,opacity .3s;visibility:hidden}
+.popup__input_error_visible{opacity:100%;visibility:visible}
+.popup__content_minimized{min-height:128px}
+.popup__button_disabled{background:none;border:1px solid rgba(0,0,0,.15);color:rgba(0,0,0,.15)}.popup__button_disabled:hover{background:none;cursor:not-allowed}
+.profile__image_edit{height:30px;left:50%;opacity:0;position:absolute;top:50%;transform:translate(-50%,-50%);transition:opacity .3s;visibility:hidden;width:30px;z-index:2}
+.card__likes-content{display:flex;flex-direction:column;gap:4px}
+.card__likes-count{font-size:13px;text-align:center}
 
